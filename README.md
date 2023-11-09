@@ -1,101 +1,103 @@
-# LeoECS Lite Дополнительные системы.
-Дополнительные системы, расширяющие функционал LeoECS Lite.
+Translated with [Claude AI](https://claude.ai).
 
-> Проверено на Unity 2020.3 (не зависит от Unity) и содержит asmdef-описания для компиляции в виде отдельных сборок и уменьшения времени рекомпиляции основного проекта.
 
-# Содержание
-* [Социальные ресурсы](#Социальные-ресурсы)
-* [Установка](#Установка)
-    * [В виде unity модуля](#В-виде-unity-модуля)
-    * [В виде исходников](#В-виде-исходников)
-* [Классы](#Классы)
-    * [EcsGroupSystem](#EcsGroupSystem)
-    * [DelHere](#DelHere)
-* [Лицензия](#Лицензия)
-* [ЧаВо](#ЧаВо)
+# LeoECS Lite Additional Systems.
+Additional systems extending the functionality of LeoECS Lite.
 
-# Социальные ресурсы
-[![discord](https://img.shields.io/discord/404358247621853185.svg?label=enter%20to%20discord%20server&style=for-the-badge&logo=discord)](https://discord.gg/5GZVde6)
+> Tested on Unity 2020.3 (does not depend on Unity) and contains asmdef descriptions for compilation as separate assemblies and reducing main project recompilation time.
 
-# Установка
+# Contents
+* [Social links](#social-links)  
+* [Installation](#installation)
+  * [As Unity module](#as-unity-module)
+  * [As source code](#as-source-code)
+* [Classes](#classes)
+  * [EcsGroupSystem](#ecsgroupsystem)
+  * [DelHere](#delhere)
+* [License](#license)
+* [FAQ](#faq)
 
-## В виде unity модуля
-Поддерживается установка в виде unity-модуля через git-ссылку в PackageManager или прямое редактирование `Packages/manifest.json`:
+# Social links
+[![discord](https://img.shields.io/discord/404358247621853185.svg?label=enter%20discord%20server&style=for-the-badge&logo=discord)](https://discord.gg/5GZVde6)
+
+# Installation
+
+## As Unity module 
+Installation as Unity module via git url in PackageManager or direct editing of `Packages/manifest.json` is supported:
 ```
 "com.leopotam.ecslite.extendedsystems": "https://github.com/Leopotam/ecslite-extendedsystems.git",
 ```
-По умолчанию используется последняя релизная версия. Если требуется версия "в разработке" с актуальными изменениями - следует переключиться на ветку `develop`:
+By default the latest release version is used. If you need the "in development" version with the latest changes - you need to switch to the `develop` branch:
 ```
 "com.leopotam.ecslite.extendedsystems": "https://github.com/Leopotam/ecslite-extendedsystems.git#develop",
 ```
 
-## В виде исходников
-Код так же может быть склонирован или получен в виде архива со страницы релизов.
+## As source code
+The code can also be cloned or downloaded as an archive from the releases page.
 
-# Классы
+# Classes
 
 ## EcsGroupSystem
-`EcsGroupSystem` позволяет группировать ECS-системы в группы с возможностью включения / отключения в процессе работы: 
-```c#
-// Эти системы будут вложены в группу с именем "Melee".
+`EcsGroupSystem` allows grouping ECS systems into groups with the ability to enable/disable them during runtime:
+```c# 
+// These systems will be nested in a group named "Melee".
 class MeleeSystem1 : IEcsRunSystem {
-    public void Run (IEcsSystems systems) { }
+  public void Run (IEcsSystems systems) { }
 }
 class MeleeSystem2 : IEcsRunSystem {
-    public void Run (IEcsSystems systems) { }
+  public void Run (IEcsSystems systems) { }  
 }
 
 class MeleeGroupEnableSystem : IEcsRunSystem {
-    public void Run (IEcsSystems systems) {
-        // Мы можем включать и выключать группу "Melee" с помощью
-        // отправки специального события "EcsGroupSystemState".
-        var world = systems.GetWorld ();
-        var entity = world.NewEntity ();
-        ref var evt = ref world.GetPool<EcsGroupSystemState> ().Add (entity);
-        evt.Name = "Melee";
-        evt.State = true;
-    }
+  public void Run (IEcsSystems systems) {
+    // We can enable and disable the "Melee" group by 
+    // sending the special "EcsGroupSystemState" event.  
+    var world = systems.GetWorld ();
+    var entity = world.NewEntity ();
+    ref var evt = ref world.GetPool<EcsGroupSystemState> ().Add (entity);
+    evt.Name = "Melee";
+    evt.State = true;
+  }
 }
 ...
-// Стартовая инициализация.
+// Initialization.
 var systems = new EcsSystems (new EcsWorld ());
 systems
-    // Добавляем выключенную на старте группу "Melee" с 2 вложенными
-    // системами, события изменения состояния группы будут
-    // храниться в мире по умолчанию.
-    .AddGroup ("Melee", false, null,
-        new MeleeSystem1 (),
-        new MeleeSystem2 ())
-    // Остальные системы.
-    .Add (new MeleeGroupEnableSystem ())
-    .Init ();
+  // Add the "Melee" group disabled initially with 2 nested
+  // systems, group state change events will be stored 
+  // in the default world.
+  .AddGroup ("Melee", false, null, 
+    new MeleeSystem1 (),
+    new MeleeSystem2 ())
+  // Other systems.  
+  .Add (new MeleeGroupEnableSystem ())
+  .Init ();
 ```
 
 ## DelHere
-`DelHere` - это вспомогательное поведение для автоматической очистки компонентов-событий в указанном месте:
+`DelHere` is a helper behavior to automatically clean up event components at the specified location:
 ```c#
 var systems = new EcsSystems (new EcsWorld ());
 systems
-    .Add (new System1 ())
-    .Add (new System2 ())
-    // Все компоненты "C1" будут удалены здесь.
-    .DelHere<C1> ()
-    .Add (new System3 ())
-    // Все компоненты "C2" будут удалены здесь.
-    .DelHere<C2> ()
-    .Add (new System4 ())
-    .Init ();
+  .Add (new System1 ()) 
+  .Add (new System2 ())
+  // All "C1" components will be removed here.
+  .DelHere<C1> () 
+  .Add (new System3 ())
+  // All "C2" components will be removed here.
+  .DelHere<C2> ()
+  .Add (new System4 ())
+  .Init ();
 ```
-> **ВАЖНО!** Если `DelHere` выполняет удаление компонентов в явно указанном мире - этот мир должен быть зарегистрирован через вызов `AddWorld()` до вызова `DelHere()`.
+> **IMPORTANT!** If `DelHere` deletes components from explicitly specified world - this world should be registered via `AddWorld()` call before `DelHere()`.
 
-# Лицензия
-Фреймворк выпускается под двумя лицензиями, [подробности тут](./LICENSE.md).
+# License
+The framework is released under two licenses, see [details here](./LICENSE.md).
 
-В случаях лицензирования по условиям MIT-Red не стоит расчитывать на
-персональные консультации или какие-либо гарантии.
+In cases of licensing under MIT-Red terms, you should not expect any personal support or guarantees of any kind.
 
-# ЧаВо
+# FAQ
 
-### Я хочу воспользоваться функционалом инъекции зависимостей из `ecslite-di`, но поля систем, вложенных в именованные группы, не инициализируются должным образом. Как это исправить?
+### I want to use the dependency injection functionality from `ecslite-di`, but the fields of systems nested in named groups are not initialized properly. How can I fix this?
 
-Для этого достаточно указать директиву компилятора `LEOECSLITE_DI`.
+It is enough to specify the `LEOECSLITE_DI` compiler directive.
